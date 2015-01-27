@@ -1,11 +1,13 @@
 package ftp;
 
+import java.net.Socket;
+
 public class RequestFTP {
 
 	private String commande;
 	
-	public RequestFTP(String cmd){
-		this.commande=cmd;
+	public RequestFTP(Socket cmd){
+		
 	}
 	public void processRequest() {
 		
