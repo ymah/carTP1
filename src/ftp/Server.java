@@ -15,7 +15,7 @@ public class Server {
 		/*creation serversocket*/
 		try {
 			@SuppressWarnings("resource")
-			final ServerSocket ss = new ServerSocket(2783);
+			final ServerSocket ss = new ServerSocket(2121);
 			/*fin creation serversocket*/
 			Socket socket =null;
 			/*accepter une connection passer la main a un thread*/

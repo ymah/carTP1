@@ -9,12 +9,15 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.HashMap;
 
+import javax.swing.plaf.synth.SynthOptionPaneUI;
+
 public class RequestFTP implements Runnable {
 
 	private HashMap<String, String> usersList;
 	private Socket socket;
 	private String user;
 	private String pass;
+	private String repo;
 	
 	private boolean connected;
 	private String action;
@@ -23,6 +26,7 @@ public class RequestFTP implements Runnable {
 		this.socket = s;
 		this.connected= false;
 		this.usersList =  ul ;
+		
 	}
 	public void processRequest() {
 		String buffer;
@@ -45,6 +49,7 @@ public class RequestFTP implements Runnable {
 
 	private void checkRequest(String buffer){
 		String[] split = buffer.split(" ");
+
 		switch(split[0]){
 		case "USER":
 			if(split.length >= 2){
@@ -57,9 +62,18 @@ public class RequestFTP implements Runnable {
 		case "PASS":
 			if(split.length >= 2){
 				this.action = split[1];
-				processUser();
+				processPass();
+				send("215");
 			}else {
-				send("USER <pseudo>");
+				send("PASS <pseudo>");
+			}
+			break;
+		case "bye":
+			if(split.length >= 2){
+				this.action = split[1];
+				processQuit();
+			}else {
+				send("PASS <pseudo>");
 			}
 			break;
 		default:
@@ -69,12 +83,12 @@ public class RequestFTP implements Runnable {
 	}
 	
 	private void send(String mess){
-		System.out.println("Send de : "+mess);
+		System.out.println("Send of "+mess);
 		OutputStream os;
 		try {
 			os = this.socket.getOutputStream();
 			DataOutputStream dos = new DataOutputStream(os);
-			dos.write(mess.toCharArray());
+			dos.writeBytes(mess+"\n");
 			dos.flush();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -84,6 +98,7 @@ public class RequestFTP implements Runnable {
 	
 	public void processUser() {
 		HashMap<String, String> users = this.usersList;
+		
 		if(users.containsKey(this.action)){
 			this.user = this.action;
 			send("331");
@@ -115,7 +130,7 @@ public class RequestFTP implements Runnable {
 	}
 
 	public void processQuit() {
-
+		send("221");
 	}
 
 	public void run() {
