@@ -21,7 +21,7 @@ public class Server {
 			/*accepter une connection passer la main a un thread*/
 			while(true){
 				socket = ss.accept();
-				Thread tFtp =new Thread(new RequestFTP(socket,usersList));
+				Thread tFtp = new Thread(new RequestFTP(socket,usersList));
 				tFtp.start();
 			}
 		} catch (NumberFormatException e) {
