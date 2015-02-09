@@ -18,7 +18,7 @@ public class Server {
 			final ServerSocket ss = new ServerSocket(2121);
 			/*fin creation serversocket*/
 			Socket socket =null;
-			/*accepter une connection passer la main a un thread*/
+			/*accepter une connexion passer la main a un thread*/
 			while(true){
 				socket = ss.accept();
 				Thread tFtp = new Thread(new RequestFTP(socket,usersList));

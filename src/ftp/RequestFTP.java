@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -77,9 +78,9 @@ public class RequestFTP implements Runnable {
 		case "SYST":
 			processSys();
 			break;
-		case "LIST":
-			processList();
-			break;
+//		case "LIST":
+//			processList();
+//			break;
 		case "PORT":
 			if(split.length >= 2){
 				this.action = split[1];
@@ -144,18 +145,20 @@ public class RequestFTP implements Runnable {
 	
 	public void processPrt() {
 		String[] process = this.action.split(",");
-		StringBuilder builder = new StringBuilder();
-		String IP;
+//		StringBuilder builder = new StringBuilder();
+//		String IP;
 		int port;
-		for(int i = 0; i<process.length-2; i++){
-			builder.append(process[i]);
-			if(i != process.length-3)
-				builder.append('.');
-		}
-		IP = builder.toString();
+//		for(int i = 0; i<process.length-2; i++){
+//			builder.append(process[i]);
+//			if(i != process.length-3)
+//				builder.append('.');
+//		}
+//		IP = builder.toString();
 		port = Integer.parseInt(process[process.length-2]) * 256 + Integer.parseInt(process[process.length-1]);
 		try {
-			this.socketData = new Socket(IP, port);
+			final ServerSocket ss = new ServerSocket(2121);
+			this.socketData = ss.accept();
+			Thread tData = new Thread(new DataFTP(socket));
 			send("200");
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
@@ -175,30 +178,6 @@ public class RequestFTP implements Runnable {
 
 	public void processStor() {
 
-	}
-	
-	public void listerRepertoire(File repertoire){
-
-		String [] listefichiers;
-
-		int i;
-		listefichiers=repertoire.list();
-		for(i=0;i<listefichiers.length;i++){
-			if(listefichiers[i].endsWith(".java")==true){
-
-				System.out.println(listefichiers[i].substring(0,listefichiers[i].length()-5));// on choisit la sous chaine - les 5 derniers caracteres ".java"
-			}
-		}
-	}
-
-	public void processList() {
-		System.out.println("En attente de connection");
-        // En attente d'une connection sur le nouveau port pour le canal de donnée
-        Socket canal=this.socketData.accept();
-        ArrayList<File> files=new ArrayList<File>();
-        
-        // On envoie les commandes par le canal de commande
-        send("150 Here comes the directory listing");
 	}
 
 	public void processQuit(){
