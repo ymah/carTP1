@@ -1,9 +1,14 @@
 package ftp;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -33,6 +38,7 @@ public class RequestFTP implements Runnable {
 	private String user;
 	private String pass;
 	private String repo;
+	private String current;
 	
 	private boolean connected;
 	private String action;
@@ -40,7 +46,8 @@ public class RequestFTP implements Runnable {
 	public RequestFTP(Socket s,HashMap<String, String> ul){
 		this.socket = s;
 		this.connected= false;
-		this.usersList =  ul ;		
+		this.usersList =  ul ;	
+		current = System.getProperty("user.dir");
 	}
 	public void processRequest(){
 		String buffer;
@@ -85,18 +92,6 @@ public class RequestFTP implements Runnable {
 		case "SYST":
 			processSys();
 			break;
-//		case "LIST":
-//			processList();
-//			break;
-		case "EPSV":
-		case "EPRT":
-			if(split.length >= 2){
-				this.action = split[1];
-				processEprt();
-			}else {
-				send("TODO error list");
-			}
-			break;
 		case "PORT":
 			if(split.length >= 2){
 				this.action = split[1];
@@ -121,6 +116,22 @@ public class RequestFTP implements Runnable {
 				processList(true);
 			}else {
 				send("PASS <pseudo>");
+			}
+			break;
+		case "STOR":
+			if(split.length == 2){
+				this.action = split[1];
+				processStor();
+			}else {
+				send("501 Erreur de syntaxe dans les paramètres et/ou arguments.");
+			}
+			break;
+		case "RETR":
+			if(split.length == 2){
+				this.action = split[1];
+				processRetr();
+			}else {
+				send("501 Erreur de syntaxe dans les paramètres et/ou arguments.");
 			}
 			break;
 		default:
@@ -179,10 +190,10 @@ public class RequestFTP implements Runnable {
 		String[] liste;
 		if(test == true){
 			DataFTP dftp = new DataFTP(this.socketData);	
-			liste = dftp.listerRepertoire("userPath/"+this.user+"/"+this.action);
+			liste = dftp.listerRepertoire(this.current+this.action);
 		}else{
 			DataFTP dftp = new DataFTP(this.socketData);
-			liste = dftp.listerRepertoire("userPath/"+this.user+"/.");
+			liste = dftp.listerRepertoire(this.current+"/.");
 		}
 		send("150 ASCII data connection");
 		for(i=0;i<liste.length;i++){
@@ -201,6 +212,7 @@ public class RequestFTP implements Runnable {
 		if(users.containsValue(this.action)){
 			this.pass = this.action;
 			send("230");
+			this.current = "userPath/"+this.user+"/";
 		}else {
 			send("332");
 		}
@@ -240,40 +252,36 @@ public class RequestFTP implements Runnable {
 			e.printStackTrace();
 		}
 	}
-	public void processEprt() {
-		String[] process = this.action.split("|");
-//		StringBuilder builder = new StringBuilder();
-//		String IP;
-		int port;
-//		for(int i = 0; i<process.length-2; i++){
-//			builder.append(process[i]);
-//			if(i != process.length-3)
-//				builder.append('.');
-//		}
-//		IP = builder.toString();
-		port = Integer.parseInt(process[process.length-2]) * 256 + Integer.parseInt(process[process.length-1]);
+	public void processRetr() {
 		try {
-			final ServerSocket ss = new ServerSocket(2121);
-			this.socketData = ss.accept();
-			Thread tData = new Thread(new DataFTP(socket));
-			send("200");
-		} catch (NumberFormatException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			send("150 ASCII data connection");
+			File myFile = new File(this.current+this.action);
+			byte[] mybytearray = new byte[(int) myFile.length()];
+		    BufferedInputStream bis = new BufferedInputStream(new FileInputStream(myFile));
+		    bis.read(mybytearray, 0, mybytearray.length);
+		    OutputStream os = this.socketData.getOutputStream();
+		    os.write(mybytearray, 0, mybytearray.length);
+		    os.flush();			
+		    send("226 ASCII Transfer complete.");
+			this.socketData.close();		    
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
-	public void processRetr() {
-
-	}
 
 	public void processStor() {
-
+		try {
+			send("150 ASCII data connection");
+			DataInputStream in = new DataInputStream(new BufferedInputStream(socketData.getInputStream()));
+			byte[] bytes = new byte[1024];	
+			in.read(bytes);
+			FileOutputStream fos = new FileOutputStream(this.current+this.action);
+		    fos.write(bytes);
+		    send("226 ASCII Transfer complete.");
+			this.socketData.close();		    
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void processQuit(){
