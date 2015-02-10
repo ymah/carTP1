@@ -1,12 +1,14 @@
 package ftp;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -18,6 +20,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.swing.plaf.synth.SynthOptionPaneUI;
+
+import com.sun.xml.internal.fastinfoset.util.StringArray;
 
 import sun.security.util.Length;
 
@@ -111,7 +115,10 @@ public class RequestFTP implements Runnable {
 			break;
 		case "LIST":
 			if(split.length == 1){
-				processList();
+				processList(false);
+			}else if(split.length == 2) {
+				this.action = split[1];
+				processList(true);
 			}else {
 				send("PASS <pseudo>");
 			}
@@ -137,6 +144,26 @@ public class RequestFTP implements Runnable {
 		}
 	}
 	
+	
+	
+	private void sendData(String mess){
+		System.out.println("Send of "+mess+" on "+this.socketData.toString());
+		OutputStream os;
+		String ss = new String(mess + "\r\n");
+		try {
+			os = this.socketData.getOutputStream();
+			DataOutputStream dos = new DataOutputStream(os);
+			dos.writeBytes(ss);
+			dos.flush();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	
+	
+	
 	public void processUser(){
 		HashMap<String, String> users = this.usersList;
 		
@@ -147,10 +174,28 @@ public class RequestFTP implements Runnable {
 			send("332");
 		}
 	}
-	public void processList(){
-		Thread sendData = new Thread(new DataFTP(this.socketData));
-		sendData.start();
-	}
+	public void processList(boolean test){
+		int i;
+		String[] liste;
+		if(test == true){
+			DataFTP dftp = new DataFTP(this.socketData);	
+			liste = dftp.listerRepertoire("userPath/"+this.user+"/"+this.action);
+		}else{
+			DataFTP dftp = new DataFTP(this.socketData);
+			liste = dftp.listerRepertoire("userPath/"+this.user+"/.");
+		}
+		send("150 ASCII data connection");
+		for(i=0;i<liste.length;i++){
+			sendData(liste[i]);
+		}
+		send("226 ASCII Transfer complete.");
+		try {
+			this.socketData.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}		
 	public void processPass() {
 		HashMap<String, String> users = this.usersList;
 		if(users.containsValue(this.action)){
@@ -179,9 +224,10 @@ public class RequestFTP implements Runnable {
 		port = Integer.parseInt(process[process.length-2]) * 256 + Integer.parseInt(process[process.length-1]);
 		try {
 			InetAddress addr = InetAddress.getByName(IP);
-			SocketAddress sckadd = new InetSocketAddress(addr, port);
+			SocketAddress sckadd = new InetSocketAddress(addr,port);
 			int timeout = 2000;
 			this.socketData = new Socket();
+			socketData.connect(sckadd,timeout);
 			send("200");
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
