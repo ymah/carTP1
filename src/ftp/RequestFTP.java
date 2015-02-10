@@ -8,8 +8,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -81,6 +84,15 @@ public class RequestFTP implements Runnable {
 //		case "LIST":
 //			processList();
 //			break;
+		case "EPSV":
+		case "EPRT":
+			if(split.length >= 2){
+				this.action = split[1];
+				processEprt();
+			}else {
+				send("TODO error list");
+			}
+			break;
 		case "PORT":
 			if(split.length >= 2){
 				this.action = split[1];
@@ -93,6 +105,13 @@ public class RequestFTP implements Runnable {
 			if(split.length >= 2){
 				this.action = split[1];
 				processQuit();
+			}else {
+				send("PASS <pseudo>");
+			}
+			break;
+		case "LIST":
+			if(split.length == 1){
+				processList();
 			}else {
 				send("PASS <pseudo>");
 			}
@@ -128,7 +147,10 @@ public class RequestFTP implements Runnable {
 			send("332");
 		}
 	}
-
+	public void processList(){
+		Thread sendData = new Thread(new DataFTP(this.socketData));
+		sendData.start();
+	}
 	public void processPass() {
 		HashMap<String, String> users = this.usersList;
 		if(users.containsValue(this.action)){
@@ -145,6 +167,35 @@ public class RequestFTP implements Runnable {
 	
 	public void processPrt() {
 		String[] process = this.action.split(",");
+		StringBuilder builder = new StringBuilder();
+		String IP;
+		int port;
+		for(int i = 0; i<process.length-2; i++){
+			builder.append(process[i]);
+			if(i != process.length-3)
+				builder.append('.');
+		}
+		IP = builder.toString();
+		port = Integer.parseInt(process[process.length-2]) * 256 + Integer.parseInt(process[process.length-1]);
+		try {
+			InetAddress addr = InetAddress.getByName(IP);
+			SocketAddress sckadd = new InetSocketAddress(addr, port);
+			int timeout = 2000;
+			this.socketData = new Socket();
+			send("200");
+		} catch (NumberFormatException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	public void processEprt() {
+		String[] process = this.action.split("|");
 //		StringBuilder builder = new StringBuilder();
 //		String IP;
 		int port;
@@ -171,7 +222,6 @@ public class RequestFTP implements Runnable {
 			e.printStackTrace();
 		}
 	}
-
 	public void processRetr() {
 
 	}
