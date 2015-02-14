@@ -46,7 +46,7 @@ public class RequestFTP implements Runnable {
 				checkRequest(buffer);
 
 			}catch (IOException e){
-				
+				new Exception("Erreur ProcessRequet");
 			}
 		}
 		
@@ -129,8 +129,7 @@ public class RequestFTP implements Runnable {
 			dos.writeBytes(ss);
 			dos.flush();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("Erreur envoi de message");
 		}
 	}
 	
@@ -146,8 +145,7 @@ public class RequestFTP implements Runnable {
 			dos.writeBytes(ss);
 			dos.flush();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("Erreur envoi de données");
 		}
 	}
 	
@@ -183,7 +181,7 @@ public class RequestFTP implements Runnable {
 			this.socketData.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("Erreur fermeture de socket data");
 		}
 	}		
 	public void processPass() {
@@ -197,6 +195,7 @@ public class RequestFTP implements Runnable {
 	}
 	
 	public void processSys() {
+		send("UNIX");
 		send("215");
 	}
 	
@@ -221,13 +220,13 @@ public class RequestFTP implements Runnable {
 			send("200");
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("Erreur sur l'IP et/ou le port client");
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("Adresse IP client non trouvée");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("Erreur de connexion au socket");
 		}
 	}
 	public void processRetr() {
@@ -244,7 +243,7 @@ public class RequestFTP implements Runnable {
 			this.socketData.close();
 			bis.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println("Erreur de connexion au socket");
 		}
 	}
 
@@ -260,7 +259,7 @@ public class RequestFTP implements Runnable {
 			this.socketData.close();	
 			fos.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println("Erreur de connexion au socket");
 		}
 	}
 

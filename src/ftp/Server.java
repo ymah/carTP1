@@ -25,11 +25,9 @@ public class Server {
 				tFtp.start();
 			}
 		} catch (NumberFormatException e) {
-			System.err.println("Argument erreur");
-			e.printStackTrace();
+			System.out.println("Erreur de port");
 		} catch (IOException e) {
-			System.err.println("creation serveur erreur");
-			e.printStackTrace();
+			System.out.println("Erreur de création de socket");
 		}
 	}	
 
