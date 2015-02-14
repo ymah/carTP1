@@ -85,10 +85,7 @@ public class RequestFTP implements Runnable {
 			}
 			break;
 		case "QUIT":
-			if(split.length >= 2){
-				this.action = split[1];
-				processQuit();
-			}
+			processQuit();
 			break;
 		case "LIST":
 			if(split.length == 1){
