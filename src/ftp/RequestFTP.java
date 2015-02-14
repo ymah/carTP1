@@ -1,9 +1,7 @@
 package ftp;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -13,22 +11,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.HashMap;
-
-import javax.swing.plaf.synth.SynthOptionPaneUI;
-
-import com.sun.xml.internal.fastinfoset.util.StringArray;
-
-import sun.security.util.Length;
 
 public class RequestFTP implements Runnable {
 
@@ -36,16 +24,12 @@ public class RequestFTP implements Runnable {
 	private Socket socket;
 	private Socket socketData;
 	private String user;
-	private String pass;
-	private String repo;
 	private String current;
 	
-	private boolean connected;
 	private String action;
 	
 	public RequestFTP(Socket s,HashMap<String, String> ul){
 		this.socket = s;
-		this.connected= false;
 		this.usersList =  ul ;	
 		current = System.getProperty("user.dir");
 	}
@@ -100,12 +84,10 @@ public class RequestFTP implements Runnable {
 				send("TODO error list");
 			}
 			break;
-		case "bye":
+		case "QUIT":
 			if(split.length >= 2){
 				this.action = split[1];
 				processQuit();
-			}else {
-				send("PASS <pseudo>");
 			}
 			break;
 		case "LIST":
@@ -123,7 +105,7 @@ public class RequestFTP implements Runnable {
 				this.action = split[1];
 				processStor();
 			}else {
-				send("501 Erreur de syntaxe dans les paramètres et/ou arguments.");
+				send("501 Erreur de syntaxe dans les paramï¿½tres et/ou arguments.");
 			}
 			break;
 		case "RETR":
@@ -131,7 +113,7 @@ public class RequestFTP implements Runnable {
 				this.action = split[1];
 				processRetr();
 			}else {
-				send("501 Erreur de syntaxe dans les paramètres et/ou arguments.");
+				send("501 Erreur de syntaxe dans les paramÃ©tres et/ou arguments.");
 			}
 			break;
 		default:
@@ -189,10 +171,10 @@ public class RequestFTP implements Runnable {
 		int i;
 		String[] liste;
 		if(test == true){
-			DataFTP dftp = new DataFTP(this.socketData);	
+			DataFTP dftp = new DataFTP();	
 			liste = dftp.listerRepertoire(this.current+this.action);
 		}else{
-			DataFTP dftp = new DataFTP(this.socketData);
+			DataFTP dftp = new DataFTP();
 			liste = dftp.listerRepertoire(this.current+"/.");
 		}
 		send("150 ASCII data connection");
@@ -210,7 +192,6 @@ public class RequestFTP implements Runnable {
 	public void processPass() {
 		HashMap<String, String> users = this.usersList;
 		if(users.containsValue(this.action)){
-			this.pass = this.action;
 			send("230");
 			this.current = "userPath/"+this.user+"/";
 		}else {
@@ -263,7 +244,8 @@ public class RequestFTP implements Runnable {
 		    os.write(mybytearray, 0, mybytearray.length);
 		    os.flush();			
 		    send("226 ASCII Transfer complete.");
-			this.socketData.close();		    
+			this.socketData.close();
+			bis.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -278,7 +260,8 @@ public class RequestFTP implements Runnable {
 			FileOutputStream fos = new FileOutputStream(this.current+this.action);
 		    fos.write(bytes);
 		    send("226 ASCII Transfer complete.");
-			this.socketData.close();		    
+			this.socketData.close();	
+			fos.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
