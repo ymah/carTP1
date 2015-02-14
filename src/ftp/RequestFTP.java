@@ -339,6 +339,11 @@ public class RequestFTP implements Runnable {
 
 	public void processQuit(){
 		send("221");
+		try {
+			this.socket.close();
+		} catch (IOException e) {
+			System.out.println("Erreur fermeture socket");
+		}
 	}
 
 	public void run() {
