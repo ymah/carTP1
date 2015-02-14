@@ -161,7 +161,7 @@ public class RequestFTP implements Runnable {
 			this.user = this.action;
 			send("331");
 		}else {
-			send("332");
+			send("332 User Name does not exists");
 		}
 	}
 	public void processList(boolean test){
@@ -188,11 +188,11 @@ public class RequestFTP implements Runnable {
 	}		
 	public void processPass() {
 		HashMap<String, String> users = this.usersList;
-		if(users.containsValue(this.action)){
+		if(users.containsValue(this.action) & users.containsKey(this.user)){
 			send("230");
 			this.current = "userPath/"+this.user+"/";
 		}else {
-			send("332");
+			send("530");
 		}
 	}
 	
