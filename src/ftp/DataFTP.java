@@ -16,5 +16,4 @@ public class DataFTP{
 		return flist;
 	}
 
-
 }

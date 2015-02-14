@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -24,6 +25,7 @@ public class RequestFTP implements Runnable {
 	private Socket socket;
 	private Socket socketData;
 	private String user;
+	private String slash;
 	private String current;
 	
 	private String action;
@@ -32,6 +34,7 @@ public class RequestFTP implements Runnable {
 		this.socket = s;
 		this.usersList =  ul ;	
 		current = System.getProperty("user.dir");
+		slash = current;
 	}
 	
 	
@@ -116,6 +119,20 @@ public class RequestFTP implements Runnable {
 				send("501 Erreur de syntaxe dans les paramétres et/ou arguments.");
 			}
 			break;
+		case "PWD":
+			processPwd();
+			break;
+		case "CWD":
+			if(split.length == 2){
+				this.action = split[1];
+				processCdw(true);
+			}else {
+				processCdw(false);
+			}
+			break;
+		case "CDUP":
+			processCdup();
+			break;
 		default:
 			System.out.println("NOT IMPLEMENTED " + buffer);
 			//send("505");
@@ -136,8 +153,6 @@ public class RequestFTP implements Runnable {
 		}
 	}
 	
-	
-	
 	private void sendData(String mess){
 		System.out.println("Send of "+mess+" on "+this.socketData.toString());
 		OutputStream os;
@@ -150,10 +165,7 @@ public class RequestFTP implements Runnable {
 		} catch (IOException e) {
 			System.out.println("Erreur envoi de données");
 		}
-	}
-	
-	
-	
+	}	
 	
 	public void processUser(){
 		HashMap<String, String> users = this.usersList;
@@ -192,8 +204,66 @@ public class RequestFTP implements Runnable {
 		if(users.containsValue(this.action) & users.containsKey(this.user)){
 			send("230");
 			this.current = "userPath/"+this.user+"/";
+			this.slash = this.current;
 		}else {
 			send("530");
+		}
+	}
+	
+	private void processPwd() {
+		String tmp[] = this.current.split("/");
+		StringBuilder builder = new StringBuilder();
+		
+		System.out.println(this.current);
+		
+		builder.append('/');
+		for(int i = 2; i<tmp.length; i++)
+			builder.append(tmp[i]+'/');
+		
+		send("257 current directory is : "+builder.toString());		
+	}
+	
+	private void processCdw(boolean b) {
+		if(b){
+			if(this.action.equals("/")){
+				this.current = this.slash;
+				send("250 CWD Command successful.");
+			}else{
+				File dir = new File(this.current);
+				  
+				File[] subDirs = dir.listFiles(new FileFilter() {
+				    public boolean accept(File pathname) {
+				        return pathname.isDirectory();
+				    }
+				});
+				  
+				for (File subDir : subDirs) {
+				    if(this.action.equals(subDir.getName())){
+				    	this.current += subDir.getName()+"/";
+				    	send("250 CWD Command successful.");
+				    	return;
+				    }				    					    	
+				}
+				send("550 Directory not found.");
+			}				
+		}else{
+			this.current = this.slash;
+			send("250 CWD Command successful.");
+		}
+	}
+	
+	private void processCdup() {
+		if(this.current.equals(this.slash))
+			send("550 Current dir is /");
+		else{
+			String tmp[] = this.current.split("/");
+			StringBuilder builder = new StringBuilder();
+			
+			for(int i = 0; i<tmp.length-1; i++)
+				builder.append(tmp[i]+'/');
+			this.current=builder.toString();
+			
+			send("250 CDUP command successful");
 		}
 	}
 	
@@ -232,6 +302,7 @@ public class RequestFTP implements Runnable {
 			System.out.println("Erreur de connexion au socket");
 		}
 	}
+	
 	public void processRetr() {
 		try {
 			send("150 ASCII data connection");
