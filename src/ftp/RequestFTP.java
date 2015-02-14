@@ -33,6 +33,9 @@ public class RequestFTP implements Runnable {
 		this.usersList =  ul ;	
 		current = System.getProperty("user.dir");
 	}
+	
+	
+	
 	public void processRequest(){
 		String buffer;
 		send("220");
