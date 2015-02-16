@@ -50,7 +50,7 @@ public class RequestFTP implements Runnable {
 	/**
 	 * processRequest : Gestion des requetes du client sur le serveur FTP
 	 */
-	public void processRequest(){
+	private void processRequest(){
 		String buffer;
 		send("220");
 		while(true){
@@ -194,7 +194,7 @@ public class RequestFTP implements Runnable {
 	/**
 	 * processUser : traitement de la commande USER sur le serveur ftp
 	 */
-	public void processUser(){
+	private void processUser(){
 		HashMap<String, String> users = this.usersList;
 		
 		if(users.containsKey(this.action)){
@@ -209,7 +209,7 @@ public class RequestFTP implements Runnable {
 	/**
 	 * processList : traitement de la commande LIST sur le serveur ftp
 	 */
-	public void processList(boolean test){
+	private void processList(boolean test){
 		int i;
 		String[] liste;
 		if(test == true){
@@ -234,7 +234,7 @@ public class RequestFTP implements Runnable {
 	/**
 	 * processPass : traitement de la commande PASS sur le serveur ftp
 	 */
-	public void processPass() {
+	private void processPass() {
 		HashMap<String, String> users = this.usersList;
 		if(users.containsValue(this.action) & users.containsKey(this.user)){
 			send("230");
@@ -310,14 +310,14 @@ public class RequestFTP implements Runnable {
 	/**
 	 * processSys : traitement de la commande Sys sur le serveur ftp
 	 */
-	public void processSys() {
+	private void processSys() {
 		send("UNIX");
 		send("215");
 	}
 	/**
 	 * processPrt : traitement de la commande PORT sur le serveur ftp
 	 */
-	public void processPrt() {
+	private void processPrt() {
 		String[] process = this.action.split(",");
 		StringBuilder builder = new StringBuilder();
 		String IP;
@@ -350,7 +350,7 @@ public class RequestFTP implements Runnable {
 	/**
 	 * processRetr : traitement de la commande get sur le serveur ftp
 	 */
-	public void processRetr() {
+	private void processRetr() {
 		try {
 			send("150 ASCII data connection");
 			File myFile = new File(this.current+this.action);
@@ -370,7 +370,7 @@ public class RequestFTP implements Runnable {
 	/**
 	 * processStor : traitement de la commande put sur le serveur ftp
 	 */
-	public void processStor() {
+	private void processStor() {
 		try {
 			send("150 ASCII data connection");
 			DataInputStream in = new DataInputStream(new BufferedInputStream(socketData.getInputStream()));
@@ -388,7 +388,7 @@ public class RequestFTP implements Runnable {
 	/**
 	 * processQuit : traitement de la commande quit sur le serveur ftp
 	 */
-	public void processQuit(){
+	private void processQuit(){
 		send("221");
 		try {
 			this.socket.close();
@@ -402,7 +402,7 @@ public class RequestFTP implements Runnable {
 	 * @param repertoire : repertoire sur lequel il faut lister les fichiers
 	 * @return String[] : tableau des elements présents dans le repertoire.
 	 */
-	public String[] listerRepertoire(String repertoire){
+	private String[] listerRepertoire(String repertoire){
 		System.out.println(repertoire);
 		File directory = new File(repertoire);
 		String[] flist = directory.list();
