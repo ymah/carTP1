@@ -4,12 +4,21 @@ Mahieddine Yaker - Dylan Forest
 
 Ce logiciel sert de serveur FTP, il devra être utilisable via un logiciel client type sur le protocle RFC 959.
 
-Une première classe Server génère la liste des utilisateurs, un seul est disponnible, mah avec comme mot de passe
-toto. 
+Une première classe Server génère la liste des utilisateurs, un seul est disponnible :
+USER : mah
+PASS : toto
+
+Une liste d'utilisateur peut etre alimentée dans la classe Server, la hashmap usersList, avec la ligne de code suivante :
+usersList.put(username, password);
+
 A savoir que pour fonctionner, côté serveur, il faut un dossier 'userPath' dans lequel se trouve les dossier des 
-différents utilisateurs. Ici, un dossier 'userPath/mah/' est nécessaire. Ils seront fournis dans l'archive.
+différents utilisateurs. Ici, un dossier 'userPath/mah/' est nécessaire. Ils seront fournis dans l'archive
+
+
 Cette classe crée ensuite le serveur sur une socket (ici 2121) et attend la connexion de clients. Chaque nouvelle
 connexion entraine la création d'une nouveau Thread de la seconde classe présente dans ce package, RequestFTP.
+
+
 
 Cette seconde classe sert aux traitements des différentes requêtes clientes. Dès sa création, c'est à dire dès qu'un
 client s'est connecté au serveur, cette classe envoi via la méthode suivante le message de bienvenu '220'.
@@ -56,8 +65,8 @@ le serveur a bien ouvert la Socket et qu'il est prêt à traiter ses requêtes.
 
 Ainsi le client est en mesure d'envoyer les commande suivante traitée par notre serveur :
 - LIST
-- RETR 
-- STOR 
+- RETR
+- STOR
 - PWD
 - CWD
 - CDUP
