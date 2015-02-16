@@ -1,0 +1,6 @@
+Réalistion d'un serveur FTP MultiThreadé
+Mahieddine Yaker - Dylan Forest
+16/12/15
+
+Pour l'utilisation, rien de particulier, le port est précisé en dur, le 2121.
+Il fonctionne ensuite de façon autonome.

@@ -408,6 +408,7 @@ public class RequestFTP implements Runnable {
 		String[] flist = directory.list();
 		return flist;
 	}
+	
 	public void run() {
 		this.processRequest();
 	}
