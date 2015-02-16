@@ -19,6 +19,10 @@ import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 
+/**
+ * @author Mahieddine Yaker et Dylan Forest
+ *
+ */
 public class RequestFTP implements Runnable {
 
 	private HashMap<String, String> usersList;
@@ -30,6 +34,10 @@ public class RequestFTP implements Runnable {
 	
 	private String action;
 	
+	/**
+	 * @param s Socket socket de la connexion du serveur
+	 * @param ul HashMap Liste des utilisateurs
+	 */
 	public RequestFTP(Socket s,HashMap<String, String> ul){
 		this.socket = s;
 		this.usersList =  ul ;	
@@ -39,6 +47,9 @@ public class RequestFTP implements Runnable {
 	
 	
 	
+	/**
+	 * processRequest : Gestion des requetes du client sur le serveur FTP
+	 */
 	public void processRequest(){
 		String buffer;
 		send("220");
@@ -58,6 +69,11 @@ public class RequestFTP implements Runnable {
 		
 	}
 
+	/**
+	 * checkRequest : verification de l'integrité de la requete du client.
+	 * @param buffer requete du client
+	 * @throws IOException
+	 */
 	private void checkRequest(String buffer) throws IOException{
 		System.out.println(buffer);
 		String[] split = buffer.split(" ");
@@ -139,6 +155,10 @@ public class RequestFTP implements Runnable {
 		}
 	}
 	
+	/**
+	 * send : envoie d'un message au client du serveur
+	 * @param mess : message à envoyer au client
+	 */
 	private void send(String mess){
 		System.out.println("Send of "+mess);
 		OutputStream os;
@@ -153,6 +173,10 @@ public class RequestFTP implements Runnable {
 		}
 	}
 	
+	/**
+	 * sendData : envoie un message au client sur le socket data
+	 * @param mess : message à envoyer
+	 */
 	private void sendData(String mess){
 		System.out.println("Send of "+mess+" on "+this.socketData.toString());
 		OutputStream os;
@@ -167,6 +191,9 @@ public class RequestFTP implements Runnable {
 		}
 	}	
 	
+	/**
+	 * processUser : traitement de la commande USER sur le serveur ftp
+	 */
 	public void processUser(){
 		HashMap<String, String> users = this.usersList;
 		
@@ -177,15 +204,20 @@ public class RequestFTP implements Runnable {
 			send("332 User Name does not exists");
 		}
 	}
+	
+	
+	/**
+	 * processList : traitement de la commande LIST sur le serveur ftp
+	 */
 	public void processList(boolean test){
 		int i;
 		String[] liste;
 		if(test == true){
-			DataFTP dftp = new DataFTP();	
-			liste = dftp.listerRepertoire(this.current+this.action);
+			
+			liste = listerRepertoire(this.current+this.action);
 		}else{
-			DataFTP dftp = new DataFTP();
-			liste = dftp.listerRepertoire(this.current+"/.");
+
+			liste = listerRepertoire(this.current+"/.");
 		}
 		send("150 ASCII data connection");
 		for(i=0;i<liste.length;i++){
@@ -199,6 +231,9 @@ public class RequestFTP implements Runnable {
 			System.out.println("Erreur fermeture de socket data");
 		}
 	}		
+	/**
+	 * processPass : traitement de la commande PASS sur le serveur ftp
+	 */
 	public void processPass() {
 		HashMap<String, String> users = this.usersList;
 		if(users.containsValue(this.action) & users.containsKey(this.user)){
@@ -209,7 +244,9 @@ public class RequestFTP implements Runnable {
 			send("530");
 		}
 	}
-	
+	/**
+	 * processPwd : traitement de la commande pwd sur le serveur ftp
+	 */
 	private void processPwd() {
 		String tmp[] = this.current.split("/");
 		StringBuilder builder = new StringBuilder();
@@ -222,7 +259,9 @@ public class RequestFTP implements Runnable {
 		
 		send("257 current directory is : "+builder.toString());		
 	}
-	
+	/**
+	 * processCwd : traitement de la commande cwd sur le serveur ftp
+	 */
 	private void processCdw(boolean b) {
 		if(b){
 			if(this.action.equals("/")){
@@ -251,7 +290,9 @@ public class RequestFTP implements Runnable {
 			send("250 CWD Command successful.");
 		}
 	}
-	
+	/**
+	 * processCdup : traitement de la commande cdup sur le serveur ftp
+	 */
 	private void processCdup() {
 		if(this.current.equals(this.slash))
 			send("550 Current dir is /");
@@ -266,12 +307,16 @@ public class RequestFTP implements Runnable {
 			send("250 CDUP command successful");
 		}
 	}
-	
+	/**
+	 * processSys : traitement de la commande Sys sur le serveur ftp
+	 */
 	public void processSys() {
 		send("UNIX");
 		send("215");
 	}
-	
+	/**
+	 * processPrt : traitement de la commande PORT sur le serveur ftp
+	 */
 	public void processPrt() {
 		String[] process = this.action.split(",");
 		StringBuilder builder = new StringBuilder();
@@ -302,7 +347,9 @@ public class RequestFTP implements Runnable {
 			System.out.println("Erreur de connexion au socket");
 		}
 	}
-	
+	/**
+	 * processRetr : traitement de la commande get sur le serveur ftp
+	 */
 	public void processRetr() {
 		try {
 			send("150 ASCII data connection");
@@ -320,7 +367,9 @@ public class RequestFTP implements Runnable {
 			System.out.println("Erreur de connexion au socket");
 		}
 	}
-
+	/**
+	 * processStor : traitement de la commande put sur le serveur ftp
+	 */
 	public void processStor() {
 		try {
 			send("150 ASCII data connection");
@@ -336,7 +385,9 @@ public class RequestFTP implements Runnable {
 			System.out.println("Erreur de connexion au socket");
 		}
 	}
-
+	/**
+	 * processQuit : traitement de la commande quit sur le serveur ftp
+	 */
 	public void processQuit(){
 		send("221");
 		try {
@@ -346,6 +397,17 @@ public class RequestFTP implements Runnable {
 		}
 	}
 
+	/**
+	 * listerRepertoire
+	 * @param repertoire : repertoire sur lequel il faut lister les fichiers
+	 * @return String[] : tableau des elements présents dans le repertoire.
+	 */
+	public String[] listerRepertoire(String repertoire){
+		System.out.println(repertoire);
+		File directory = new File(repertoire);
+		String[] flist = directory.list();
+		return flist;
+	}
 	public void run() {
 		this.processRequest();
 	}
