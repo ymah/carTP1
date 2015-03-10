@@ -311,8 +311,7 @@ public class RequestFTP implements Runnable {
 	 * processSys : traitement de la commande Sys sur le serveur ftp
 	 */
 	private void processSys() {
-		send("UNIX");
-		send("215");
+		send("215 WINDOWS");
 	}
 	/**
 	 * processPrt : traitement de la commande PORT sur le serveur ftp
